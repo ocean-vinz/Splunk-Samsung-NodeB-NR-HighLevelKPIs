@@ -4,7 +4,7 @@ Splunk Dashboard for  BTS/eNODEB/NR-BTS High Level KPIs Report
 ## Table of contents
 * [General info](#general-info)
 * [Technologies](#technologies)
-* [Snapshot](#Dashboard Snapshot)
+* [Snapshot](##dashboard-snapshot)
 
 ## General info
 I built this project to simplify the high-level report for the initial Samsung 4G 5G rollout.
