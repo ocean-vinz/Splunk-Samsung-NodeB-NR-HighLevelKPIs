@@ -1,0 +1,1205 @@
+<form theme="dark">
+  <label>Samsung RAN Report</label>
+  <search id="lte_baseSearch">
+    <query>
+      index=temp
+      sourcetype=Samsung_ODS_LTE_Accessibility_View OR
+      sourcetype=Samsung_ODS_LTE_Availability_View OR
+      sourcetype=Samsung_ODS_LTE_Integrity_View OR
+      sourcetype=Samsung_ODS_LTE_Mobility_View OR
+      sourcetype=Samsung_ODS_LTE_Retainability_View OR
+      sourcetype=Samsung_ODS_LTE_Utilisation_View OR
+      sourcetype=Samsung_ODS_LTE_RF_RSSI
+
+      <!-- sourcetype=Samsung_ODS_LTE_LossLatency -->
+      NE_NAME=$site$
+
+      | bin span=15m _time
+      | stats
+      min(ErabRetainability_pct) as ERAB_retainability               <!--From Samsung_ODS_LTE_Retainability_View -->
+      sum(RrcConnEstab_Succ_count) as RRC_connection_Succ,          <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(RrcConnEstab_Att_count) as RRC_connection_Att,            <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(S1sigConnEstab_Succ_count) as S1_connection_Succ,         <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(S1sigConnEstab_Att_count) as S1_connection_Att,           <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(ErabEstabInit_SuccNbr_count) as ERAB_Succ,                <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(ErabEstabInit_AttNbr_count) as ERAB_Att,                  <!--From Samsung_ODS_LTE_Accessibility_View -->
+      sum(ReadCellUnavailableTime_s) as ReadCellUnavailableTime,    <!--From Samsung_ODS_LTE_Availability_View -->
+      sum(CellAvailPmPeriodTime_s) as CellAvailPmPeriodTime,        <!--From Samsung_ODS_LTE_Availability_View -->
+      sum(PdcpUL_SduLoss_count)  AS PdcpSduLossULNum,                 <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(PdcpUL_SduTotal_count) AS PdcpSduTotalULNum,                <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(PdcpDL_SduLoss_count)  AS PdcpSduLossDLNum,                 <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(PdcpDL_SduTotal_count) AS PdcpSduTotalDLNum,                <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(MacUL_IpThroughput_kbytes) as MacUL_IpThroughput_kbytes,    <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(MacUL_IpThroughput_ms) as MacUL_IpThroughput_ms,            <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(RlcDL_IpThroughput_kbytes) as RlcDL_IpThroughput_kbytes ,   <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(RlcDL_IpThroughput_ms) as RlcDL_IpThroughput_ms,            <!-- From Samsung_ODS_LTE_Integrity_View -->
+      sum(CSFBPsHoUtranAtt_count) as CSFBPsHoUtranAtt,               <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(CSFBPsHoUtranSucc_count) as CSFBPsHoUtranSucc,             <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(CSFBRedirUtranAtt_count) as CSFBRedirUtranAtt,             <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(CSFBRedirUtranSucc_count) as CSFBRedirUtranSucc,           <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(CsfbToUtranAtt_count) as CsfbToUtranAtt,                   <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(CsfbToUtranSucc_count) as CsfbToUtranSucc,                 <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(IntraEnbSucc_count)   as IntraEnbSucc,                     <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(IntraEnbAtt_count)    as IntraEnbAtt,                      <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(InterS1OutAtt_count)  as InterS1OutAtt,                    <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(InterS1OutSucc_count) as InterS1OutSucc,                   <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(InterX2OutAtt_count)  as InterX2OutAtt,                    <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(InterX2OutSucc_count) as InterX2OutSucc,                   <!--From Samsung_ODS_LTE_Mobility_View -->
+      sum(EnbQciDLByte_kbytes) as EnbQciDLByte,                      <!--From Samsung_ODS_LTE_Utilisation_View -->
+      sum(AveInterferencePowerPUSCH) as AveInterferencePowerPUSCH,
+        by _time, NE_NAME, CELL_NUM
+      | fillnull value=0
+    </query>
+    <earliest>$timepicker.earliest$</earliest>
+    <latest>$timepicker.latest$</latest>
+  </search>
+  <search id="nr_baseSearch1">
+    <query>
+      index=temp source=Samsung_ODS_NR_Accessibility_View
+        OR source=Samsung_ODS_NR_Availability_View
+        OR source=Samsung_ODS_NR_Integrity_View
+        OR source=Samsung_ODS_NR_Integrity_UPC_View
+        OR source=Samsung_ODS_NR_RF_RSSI
+        OR source=Samsung_ODS_NR_Utilisation_PRB                    <!-- needs a view -->
+        OR source=Samsung_ODS_NR_Utilisation_CCE                    <!-- needs a view -->
+        OR source=Samsung_ODS_NR_Utilisation                        <!-- needs a view -->
+        NE_NAME=$site$
+	   | stats
+	      min(EndcAddSuccess_pct) as InitSgNBAddSuccRate,             <!-- From Samsung_ODS_NR_Accessibility_View -->
+	      sum(CellAvailability_pct) as CellAvailability,              <!-- From Samsung_ODS_NR_Availability_View -->
+	      sum(DL_UEThroughput_kbps) as DL_UEThroughput,               <!-- From Samsung_ODS_NR_Integrity_View -->
+	      sum(UL_UEThroughput_kbps) as UL_UEThroughput,               <!-- From Samsung_ODS_NR_Integrity_View -->
+	      sum(AveRecIntPowerPUSCH) as AveRecIntPowerPUSCH
+	      sum(DLTotalPRBUtil) as DLTotalPRBUtil
+        sum(ULTotalPRBUtil) as ULTotalPRBUtil
+        sum(PDCCHCCEUtilization) as PDCCHCCEUtilization
+	      by _time,
+	      NE_NAME,
+	      CellIdentity
+	   | fillnull value=0
+    </query>
+    <earliest>$timepicker.earliest$</earliest>
+    <latest>$timepicker.latest$</latest>
+  </search>
+  <!--row depends="$nothing$">
+    <panel>
+      <html>
+        <body>
+          <style>
+         #panel4 {
+          width: 30% !important;
+        }
+
+         #panel5 {
+        width: 70% !important;
+        }
+
+
+        </style>
+      </body>
+
+      </html>
+    </panel>
+  </row-->
+  <!--row>
+    <panel id="panel_layout" depends="$lte_tabs$">
+      <input id="input_link_split_by" type="link">
+        <label></label>
+        <choice value="lte_accessibility">LTE Accessibility</choice>
+        <choice value="lte_retainability">LTE Retainability</choice>
+        <choice value="lte_availability">LTE Availability</choice>
+        <choice value="lte_integrity">LTE Integrity</choice>
+        <choice value="lte_mobility">LTE Mobility</choice>
+        <choice value="lte_utilisation">LTE Utilisation</choice>
+        <choice value="lte_rf">LTE RF</choice>
+        <default>lte_accessibility</default>
+        <change>
+          <condition value="lte_accessibility">
+            <set token="lte_accessibility">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_utilisation"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_retainability">
+            <set token="lte_retainability">1</set>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_utilisation"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_availability">
+            <set token="lte_availability">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_utilisation"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_integrity">
+            <set token="lte_integrity">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_utilisation"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_mobility">
+            <set token="lte_mobility">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_utilisation"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_utilisation">
+            <set token="lte_utilisation">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_rf"></unset>
+          </condition>
+          <condition value="lte_rf">
+            <set token="lte_rf">1</set>
+            <unset token="lte_retainability"></unset>
+            <unset token="lte_availability"></unset>
+            <unset token="lte_integrity"></unset>
+            <unset token="lte_mobility"></unset>
+            <unset token="lte_accessibility"></unset>
+            <unset token="lte_utilisation"></unset>
+          </condition>
+        </change>
+      </input>
+      <html>
+        <style>
+          /* This Layout Panel Bottom Padding removed to merge Link Input with horizontal line */
+          #panel_layout .fieldset{
+            padding: 8px 8px 0px 8px !important;
+          }
+          /* Increase width of Link input to have options in Single Line */
+          #input_link_split_by.input-link{
+            width: auto !important;
+          }
+          /* Change from flex to -webkit-box for side by side layout */
+          #input_radio_split_by.input-link div[data-component="splunk-core:/splunkjs/mvc/components/LinkList"]{
+            display: -webkit-box !important;
+          }
+          /* Create Button Border to make them appear as Tabs */
+          #input_link_split_by.input-link button{
+            width: 160px !important;
+            border-top-color: rgb(255, 255, 255);
+            border-top-style: solid;
+            border-top-width: 1px;
+            border-right-color: rgb(255, 255, 255);
+            border-right-style: solid;
+            border-right-width: 1px;
+            border-left-color: rgb(255, 255, 255);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+          }
+          /* Hide link input bottom message section to merge with Horizontal line */
+          .dashboard-panel #input_link_split_by label,
+          #input_link_split_by .splunk-choice-input-message{
+            display: none !important;
+          }
+          /* Remove padding from horizontal line */
+          #panel_layout .panel-body.html{
+            padding: 0px !important;
+          }
+        </style>
+        <hr style="height:1px;border-width:0;color: black;background-color: white;margin: 1px;"/>
+      </html>
+    </panel>
+    <panel id="panel_layout_nr" depends="$nr_tabs$">
+      <input id="input_link_split_by_nr" type="link">
+        <label></label>
+        <choice value="nr_accessibility">NR Accessibility</choice>
+        <choice value="nr_availability">NR Availability</choice>
+        <choice value="nr_integrity">NR Integrity</choice>
+        <choice value="nr_utilisation">NR Utilisation</choice>
+        <choice value="nr_rf">NR RF</choice>
+        <default>nr_accessibility</default>
+        <change>
+          <condition value="nr_accessibility">
+            <set token="nr_accessibility">1</set>
+            <unset token="nr_availability"></unset>
+            <unset token="nr_integrity"></unset>
+            <unset token="nr_utilisation"></unset>
+            <unset token="nr_rf"></unset>
+          </condition>
+          <condition value="nr_availability">
+            <set token="nr_availability">1</set>
+            <unset token="nr_accessibility"></unset>
+            <unset token="nr_integrity"></unset>
+            <unset token="nr_utilisation"></unset>
+            <unset token="nr_rf"></unset>
+          </condition>
+          <condition value="nr_integrity">
+            <set token="nr_integrity">1</set>
+            <unset token="nr_availability"></unset>
+            <unset token="nr_accessibility"></unset>
+            <unset token="nr_utilisation"></unset>
+            <unset token="nr_rf"></unset>
+          </condition>
+          <condition value="nr_utilisation">
+            <set token="nr_utilisation">1</set>
+            <unset token="nr_availability"></unset>
+            <unset token="nr_integrity"></unset>
+            <unset token="nr_accessibility"></unset>
+            <unset token="nr_rf"></unset>
+          </condition>
+          <condition value="nr_rf">
+            <set token="nr_rf">1</set>
+            <unset token="nr_availability"></unset>
+            <unset token="nr_integrity"></unset>
+            <unset token="nr_accessibility"></unset>
+            <unset token="nr_utilisation"></unset>
+          </condition>
+        </change>
+      </input>
+      <html>
+        <style>
+          /* This Layout Panel Bottom Padding removed to merge Link Input with horizontal line */
+          #panel_layout_nr .fieldset{
+            padding: 8px 8px 0px 8px !important;
+          }
+          /* Increase width of Link input to have options in Single Line */
+          #input_link_split_by_nr.input-link{
+            width: auto !important;
+          }
+          /* Change from flex to -webkit-box for side by side layout */
+          #input_radio_split_by.input-link div[data-component="splunk-core:/splunkjs/mvc/components/LinkList"]{
+            display: -webkit-box !important;
+          }
+          /* Create Button Border to make them appear as Tabs */
+          #input_link_split_by_nr.input-link button{
+            width: 160px !important;
+            border-top-color: rgb(255, 255, 255);
+            border-top-style: solid;
+            border-top-width: 1px;
+            border-right-color: rgb(255, 255, 255);
+            border-right-style: solid;
+            border-right-width: 1px;
+            border-left-color: rgb(255, 255, 255);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+          }
+          /* Hide link input bottom message section to merge with Horizontal line */
+          .dashboard-panel #input_link_split_by_nr label,
+          #input_link_split_by_nr .splunk-choice-input-message{
+            display: none !important;
+          }
+          /* Remove padding from horizontal line */
+          #panel_layout_nr .panel-body.html{
+            padding: 0px !important;
+          }
+        </style>
+        <hr style="height:1px;border-width:0;color: black;background-color: white;margin: 1px;"/>
+      </html>
+    </panel>
+  </row-->
+  <fieldset autoRun="true" submitButton="false">
+    <input type="dropdown" token="site" searchWhenChanged="true">
+      <label>Select Site</label>
+      <fieldForLabel>NE_NAME</fieldForLabel>
+      <fieldForValue>NE_NAME</fieldForValue>
+      <choice value="*">All</choice>
+      <!--    <default>*</default>   -->
+      <!--    <initialValue>*</initialValue>  -->
+      <search>
+        <query>index=temp sourcetype=samsung*
+| stats count by NE_NAME
+| where NOT (NE_NAME LIKE "%-%")
+| eval NE_NAME=substr(NE_NAME,1,4)
+| fields- count
+| dedup NE_NAME</query>
+        <earliest>-360m@m</earliest>
+        <latest>now</latest>
+      </search>
+      <!--selectFirstChoice>true</selectFirstChoice-->
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="4gcell" searchWhenChanged="true">
+      <label>Select 4G Cell</label>
+      <search>
+        <query>index=temp sourcetype=samsung* NE_NAME=$site$*
+        | stats count by CELL_NUM</query>
+        <earliest>-360m</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>CELL_NUM</fieldForLabel>
+      <fieldForValue>CELL_NUM</fieldForValue>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="5gcell" searchWhenChanged="true">
+      <label>Select 5G Cell</label>
+      <search>
+        <query>index=temp sourcetype=samsung* NE_NAME=$site$*
+        | stats count by CellIdentity</query>
+        <earliest>-360m</earliest>
+        <latest>now</latest>
+      </search>
+      <fieldForLabel>CellIdentity</fieldForLabel>
+      <fieldForValue>CellIdentity</fieldForValue>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="time" token="timepicker" searchWhenChanged="true">
+      <label>Timepicker</label>
+      <default>
+        <earliest>-48h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+	    <H1 style="background-color: #65A637;font-weight: bold;color:white;line-height: 300%;text-align:center;">SAMSUNG -5G/NR- PERFORMANCE ($site$)</H1>
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>$site$ - NR SgNB Addition Success Rate % (minimum)</title>
+        <search>
+          <query>index=temp source=Samsung_ODS_NR_Accessibility_View
+	   | stats
+	      min(EndcAddSuccess_pct) as InitSgNBAddSuccRate
+	      by _time,
+	      NE_NAME
+	   | timechart fixedrange=f span=15m min(InitSgNBAddSuccRate) as InitSgNBAddSuccRate BY NE_NAME</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">50</option>
+        <option name="charting.axisLabelsY2.majorUnit">5</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">%</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">25</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">zero</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - NR DL Total PRB Utilisation %</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(DLTotalPRBUtil) as DLTotalPRBUtil BY CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">50</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">%</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - NR UL Total PRB Utilisation %</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(ULTotalPRBUtil) as ULTotalPRBUtil BY CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">50</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">%</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - NR PDCCH CCE Utilisation %</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(PDCCHCCEUtilization) as PDCCHCCEUtilization BY CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">50</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">%</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>$site$ - NR Cell Availability % (minimum)</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(CellAvailability) as CellAvailability by CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">50</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">UplinkUEThroughput</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - NR Average Downlink UE Throughput Kbps</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(DL_UEThroughput) as DownlinkThroughput BY CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">Kbps</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">zero</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - NR Average Uplink UE Throughput Kbps</title>
+        <search base="nr_baseSearch1">
+          <query>search CellIdentity=$5gcell$ | timechart fixedrange=f span=15m min(UL_UEThroughput) as UplinkThroughput BY CellIdentity</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">Kbps</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">zero</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - DL PDCP Data Volume Mbps delivered to RLC layer</title>
+        <search>
+          <query>index=temp source=Samsung_ODS_NR_Utilisation_UPC_View
+	            	   | stats sum(EN_DC_DL_PDCP_SDU_Data_Volume_mbits) as Utilisation by _time, NE_NAME
+	                 | fillnull value=0 | timechart fixedrange=f span=15m sum(Utilisation) as Utilisation by NE_NAME</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY2.majorUnit">5</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">25</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+	    <H1 style="background-color: #FF1493;font-weight: bold;color:white;line-height: 300%;text-align:center;">SAMSUNG -4G/LTE- PERFORMANCE ($site$)</H1>
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>$site$ - RRC Connection Setup Success Rate - Min</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+          | eval RRC_connection_setup_success_rate = if(RRC_connection_Att&gt;0,RRC_connection_Succ/RRC_connection_Att*100,100), _time=relative_time(_time,"+15m")
+          | timechart fixedrange=f span=15m min(RRC_connection_setup_success_rate) as RRC:ConnectionSetupSuccessRate by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">RRC Success Rate%</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">207</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - RRC Connection Setup Volume - Sum</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+          | eval _time=relative_time(_time,"+15m")
+          | timechart fixedrange=f span=15m sum(RRC_connection_Att) as RRC:Attempts by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">RRC Success Rate%</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">210</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - E-RAB Establishment Success Rate - Min</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+          | eval A = if(RRC_connection_Att&gt;0,RRC_connection_Succ/RRC_connection_Att,1),
+          B = if(S1_connection_Att&gt;0,S1_connection_Succ/S1_connection_Att,1),
+          C = if(ERAB_Att&gt;0,ERAB_Succ/ERAB_Att,1),
+          _time=relative_time(_time,"+15m"),
+          ERAB_establishment_success_rate = A*B*C*100
+          |timechart fixedrange=f span=15m min(ERAB_establishment_success_rate) as E-RAB:EstablishmentSuccessRate by CELL_NUM
+          </query>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">204</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - LTE Retainability - Min</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+		  | eval ERAB_retainability = min(ERAB_retainability),
+              _time = relative_time(_time,"+15m")
+            | timechart fixedrange=f span=15m min(ERAB_retainability) as E-RAB:Retainability by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.text">RRC Success Rate%</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">100</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">238</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>$site$ - Handover Success Rate (Radio Reason) - Min</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$| eval A = IntraEnbSucc+InterX2OutSucc+InterS1OutSucc,
+            B = IntraEnbAtt+InterX2OutAtt+InterS1OutAtt,
+            _time=relative_time(_time,"+15m"),
+        handover_success_rate = if(B &gt;0,A/B*100,100)
+        | timechart fixedrange=f span=15m min(handover_success_rate) as HandoverSuccessRate by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Success rate %</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - CSFB Success Rate to UTRAN - Min</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$| eval A = CSFBPsHoUtranSucc+CSFBRedirUtranSucc,
+              B = CSFBPsHoUtranAtt+CSFBRedirUtranAtt,
+              _time=relative_time(_time,"+15m"),
+              csfb_success_rate = if(B&gt;0,A/B*100,100)
+           | timechart fixedrange=f span=15m min(csfb_success_rate) as CSFB:SuccessRateToUTRAN by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Success Rate %</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.maximumNumber">101</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - DL UE IP Throughput - Sum</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+		 | eval A = RlcDL_IpThroughput_kbytes * 8 * 1.024,
+                     B = RlcDL_IpThroughput_ms/1000,
+               _time = relative_time(_time,"+15m"),
+              dl_ue_ip_thruput_kbps = A/B
+          | timechart fixedrange=f span=15m min(dl_ue_ip_thruput_kbps) as DL_UE_IP_IP_Thruput_kbps by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Kbps</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">245</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>$site$ - UL UE IP Throughput - Sum</title>
+        <search base="lte_baseSearch">
+          <query>search CELL_NUM=$4gcell$
+         | eval A = MacUL_IpThroughput_kbytes * 8,
+                  B = MacUL_IpThroughput_ms/1000,
+               _time=relative_time(_time,"+15m"),
+              ul_ue_ip_thruput_kbps = A/B
+          | timechart fixedrange=f span=15m min(ul_ue_ip_thruput_kbps) as UL_UE_IP_IP_Thruput_kbps by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY2.majorUnit">5</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Kbps</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">25</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - DL PDCP Data Volume Mbps  - Sum</title>
+        <search base="lte_baseSearch">
+          <query> search CELL_NUM=$4gcell$| eval dlpdcp_data_volume = (EnbQciDLByte * 8 )/1000,
+          _time=relative_time(_time,"+15m")
+          |timechart fixedrange=f span=15m sum(dlpdcp_data_volume) as DL_PDCP_DataVolume_Mbps by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.text">Mbps</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>$site$ - LTE RSSI</title>
+        <search base="lte_baseSearch">
+          <query> search CELL_NUM=$4gcell$
+          |timechart fixedrange=f span=15m avg(AveInterferencePowerPUSCH) as AveInterferencePowerPUSCH by CELL_NUM</query>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY2.majorUnit">5</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.maximumNumber">25</option>
+        <option name="charting.axisY2.minimumNumber">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="charting.gridLinesX.showMajorLines">1</option>
+      </chart>
+    </panel>
+  </row>
+</form>
