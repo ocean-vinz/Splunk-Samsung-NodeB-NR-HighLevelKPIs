@@ -1,10 +1,10 @@
-# Splunk-Samsung-NodeB-NR-HighLevelKPIs
+# Splunk Samsung NodeB NR-BTS High Level KPIs Dashboard
 Splunk Dashboard for  BTS/eNODEB/NR-BTS High Level KPIs Report
 
 ## Table of contents
 * [General info](#general-info)
 * [Technologies](#technologies)
-* [Setup](#setup)
+* [Snapshot](#Dashboard Snapshot)
 
 ## General info
 I built this project to simplify the high-level report for the initial Samsung 4G 5G rollout.
@@ -18,6 +18,6 @@ Project is created with:
 	
 ## Dashboard Snapshot
 
-![name-of-you-image](https://github.com/ocean-vinz/splunk-mobile-telecommunication-outages/blob/68d9ac622c558ea3ee95fd1c311b68f2c3e49a53/Major%20Outage.png)
+![Samsung](https://github.com/ocean-vinz/Splunk-Samsung-NodeB-NR-HighLevelKPIs/blob/79ab3057ebd1320181b2bbd7a1b631758851c2f7/samsung_5G.png)
 
 
